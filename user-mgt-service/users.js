@@ -20,14 +20,10 @@ function ensureSameUserInBody(req, res, next) {
   else res.status(401).json({"error": "You cannot access another user's data."}); 
 }
 
-user_router.use(async (req, res, next) => {
-  if (req.header('user')) {
-    res.locals.user = await User.findOne({ username: req.headers['user'] }).exec();
-    next();
-  } else {
-    res.status(401).json({ "error": "Unauthorized access." });
-  }
-});
+user_router.use((req, res, next) => {
+  console.log(new Date() + " " + req.path);
+  next();
+})
 
 user_router.use(express.json());
 
@@ -46,6 +42,15 @@ user_router.post('/login', async (req, res) => {
     res.status(200).json({ "user": user });
   } else {
     res.status(405).json({ "error": "Incorrect username/password combination." });
+  }
+});
+
+user_router.use(async (req, res, next) => {
+  if (req.header('user')) {
+    res.locals.user = await User.findOne({ username: req.headers['user'] }).exec();
+    next();
+  } else {
+    res.status(401).json({ "error": "Unauthorized access." });
   }
 });
 

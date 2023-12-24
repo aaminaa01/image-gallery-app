@@ -51,7 +51,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       const totalSizeOfExistingImages = existingImages.reduce((totalSize, image) => totalSize + image.size, 0);
 
       // Set the maximum allowed size (in bytes)
-      const maxAllowedSize = 100000;
+      const maxAllowedSize = 20971520; // 20MBs
 
       // Check if adding the current image size exceeds the limit
       if (totalSizeOfExistingImages + imageSize <= maxAllowedSize) {
@@ -159,9 +159,9 @@ app.post('/api/deleteImage', async (req, res) => {
 });
 
 
-app.post('/api/viewGallery', async (req, res) => {
+app.get('/api/viewGallery/:userId', async (req, res) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.params.userId;
     console.log(userId);
     const userImages = await Image.find({ userId: userId });
 
