@@ -30,23 +30,17 @@ app.post('/api/getBandwidthUsed', async (req, res) => {
     const currentDate = new Date();
     const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
 
-    // Aggregate the total bandwidth used by the user for the current day
-    const result = await BandwidthUsage.aggregate([
-      {
-        $match: {
-          userId: userId,
-          date: { $gte: startOfDay } // Filter records for the current day and beyond
-        }
-      },
-      {
-        $group: {
-          _id: "$userId",
-          totalBandwidthUsed: { $sum: "$requestSize" }
-        }
-      }
-    ]);
+    // Find documents matching the criteria
+    const documents = await BandwidthUsage.find({
+      userId: userId,
+      date: { $gte: startOfDay }
+    });
 
-    const currentBandwidthUsage = result.length > 0 ? result[0].totalBandwidthUsed : 0;
+    // Calculate total bandwidth usage
+    const totalBandwidthUsed = documents.reduce((total, doc) => total + doc.requestSize, 0);
+
+    const currentBandwidthUsage = totalBandwidthUsed || 0;
+    
     console.log(maxBandwidth);
     console.log(currentBandwidthUsage);
     console.log(requestSize);
