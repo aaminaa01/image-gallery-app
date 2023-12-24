@@ -28,7 +28,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
     const imageSize = Buffer.byteLength(req.file.buffer); // size in bytes
 
     // Make the inner API request to check if bandwidth is available
-    const innerApiResponse = await fetch('http://10.7.93.91:3400/api/getBandwidthUsed', {
+    const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
       method: 'POST',
       body: JSON.stringify({ userId: userId, imageSize: imageSize }),
       headers: {
@@ -51,7 +51,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       const totalSizeOfExistingImages = existingImages.reduce((totalSize, image) => totalSize + image.size, 0);
 
       // Set the maximum allowed size (in bytes)
-      const maxAllowedSize = 10000000;
+      const maxAllowedSize = 100000;
 
       // Check if adding the current image size exceeds the limit
       if (totalSizeOfExistingImages + imageSize <= maxAllowedSize) {
@@ -66,7 +66,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
         await newImage.save();
 
         //send usage monitoring a request to update the used bandwidth
-        const updateBandwidthUsage = await fetch('http://10.7.93.91:3400/api/updateBandwidthUsed', {
+        const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -78,13 +78,13 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
 
         console.log(bandwidthUpdated.db_status);
 
-        const log = await fetch('http://10.7.81.12:3000/logs/', {
-          method: 'POST',
-          body: JSON.stringify({ time: new Date(), service: 'stored', message: `${userId} saved.` }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        // const log = await fetch('http://10.7.81.12:3000/logs/', {
+        //   method: 'POST',
+        //   body: JSON.stringify({ time: new Date(), service: 'stored', message: `${userId} saved.` }),
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        // });
 
 
         res.json({ message: 'Image uploaded successfully!' });
@@ -104,40 +104,35 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
   }
 });
 
-// Endpoint to receive and store the image along with userId and calculated size (not implemented yet)
-app.post('/api/deleteImage', upload.single('image'), async (req, res) => {
+// Endpoint to delete the image based on imageId and userId
+app.post('/api/deleteImage', async (req, res) => {
   try {
-    // Extract imageId from the request body
     const imageId = req.body.imageId;
     const userId = req.body.userId;
-    const imageSize = Buffer.byteLength(req.file.buffer); // size in bytes
 
-    // Make the inner API request to check if bandwidth is available
-    const innerApiResponse = await fetch('http://10.7.93.91:3400/api/getBandwidthUsed', {
-      method: 'POST',
-      body: JSON.stringify({ userId: userId, imageSize: imageSize }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const existingImage = await Image.findById(imageId);
 
-    const innerApiData = await innerApiResponse.json();
+    if (existingImage) {
+      const imageSize = existingImage.size;
+      console.log("---------");
+      console.log(imageSize);
+      console.log(userId);
+      const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
+        method: 'POST',
+        body: JSON.stringify({ userId: userId, imageSize: imageSize }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    console.log(innerApiData.bandwidthAvailable);
+      const innerApiData = await innerApiResponse.json();
 
-    // Check if the boolean response from the inner API is true
-    if (innerApiData && innerApiData.bandwidthAvailable === true) {
-      // Bandwidth is available, now check storage availability
+      console.log(innerApiData.bandwidthAvailable);
 
-      // Fetch existing records with the same userId from the database
-      const existingImage = await Image.findById(imageId);
-
-      if (existingImage) {
-        // Delete the image
+      if (innerApiData && innerApiData.bandwidthAvailable === true) {
         await existingImage.deleteOne();
 
-        // Update bandwidth usage
-        const updateBandwidthUsage = await fetch('http://10.7.93.91:3400/api/updateBandwidthUsed', {
+        const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -149,30 +144,20 @@ app.post('/api/deleteImage', upload.single('image'), async (req, res) => {
 
         console.log(bandwidthUpdated.db_status);
 
-        // Log the deletion
-        const log = await fetch('http://10.7.81.12:3000/logs/', {
-          method: 'POST',
-          body: JSON.stringify({ time: new Date(), service: 'deleted', message: `${userId} ${imageId} deleted.` }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
         res.json({ message: 'Image deleted successfully!' });
       } else {
-        // Image not found
-        res.json({ message: 'Image not found.' });
+        console.log("Not enough bandwidth");
+        res.json({ message: 'Image not deleted due to inner API response.' });
       }
     } else {
-      // The boolean response is false, do not delete the image
-      console.log("Not enough bandwidth");
-      res.json({ message: 'Image not deleted due to inner API response.' });
+      res.json({ message: 'Image not found.' });
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 app.post('/api/viewGallery', async (req, res) => {
   try {
