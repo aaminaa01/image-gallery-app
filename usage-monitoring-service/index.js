@@ -8,7 +8,7 @@ const port = 3400;
 
 app.use(cors());
 
-const maxBandwidth = 1000000;
+const maxBandwidth = 20480;
 
 // Set up multer for handling file uploads
 const storage = multer.memoryStorage();
@@ -47,8 +47,10 @@ app.post('/api/getBandwidthUsed', async (req, res) => {
     ]);
 
     const currentBandwidthUsage = result.length > 0 ? result[0].totalBandwidthUsed : 0;
+    console.log(maxBandwidth);
     console.log(currentBandwidthUsage);
     console.log(requestSize);
+    console.log("test");
     if ((currentBandwidthUsage + requestSize) > maxBandwidth) {
       console.log('not available');
       res.json({ bandwidthAvailable: false });
