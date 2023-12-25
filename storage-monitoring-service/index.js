@@ -191,7 +191,7 @@ app.post('/api/deleteImage', async (req, res) => {
   }
 });
 
-app.get('/api/viewGallery/:userId', async (req, res) => {
+app.post('/api/viewGallery/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     console.log(userId);
