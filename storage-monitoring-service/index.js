@@ -39,6 +39,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
     const innerApiData = await innerApiResponse.json();
 
     console.log(innerApiData.bandwidthAvailable);
+    const maxBandwidth = innerApiData.maxBandwidth;
 
     // Check if the boolean response from the inner API is true
     if (innerApiData && innerApiData.bandwidthAvailable === true) {
@@ -96,6 +97,18 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
     } else {
       // The boolean response is false, do not save the image
       console.log("Not enough bandwidth");
+      const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Deletion not possible.';
+      const innerApiResponse = await fetch('http://localhost:3400/frontend/api/displayBandwidthAlert', {
+      method: 'POST',
+      body: JSON.stringify({ alertMessage: message }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      });
+
+      const innerApiData = await innerApiResponse.json();
+
+      console.log(innerApiData.alertDisplayStatus);
       res.json({ message: 'Image not saved due to inner API response.' });
     }
   } catch (error) {
@@ -104,35 +117,21 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
   }
 });
 
-// Endpoint to delete the image based on imageId and userId
+// Endpoint to delete the image based on imageIds and userId
 app.post('/api/deleteImage', async (req, res) => {
   try {
-    const imageId = req.body.imageId;
+    const imageIds = req.body.imageIds;
     const userId = req.body.userId;
 
-    const existingImage = await Image.findById(imageId);
+    for(const imageId of imageIds) {
+      const existingImage = await Image.findById(imageId);
 
-    if (existingImage) {
-      const imageSize = existingImage.size;
-      console.log("---------");
-      console.log(imageSize);
-      console.log(userId);
-      const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
-        method: 'POST',
-        body: JSON.stringify({ userId: userId, imageSize: imageSize }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const innerApiData = await innerApiResponse.json();
-
-      console.log(innerApiData.bandwidthAvailable);
-
-      if (innerApiData && innerApiData.bandwidthAvailable === true) {
-        await existingImage.deleteOne();
-
-        const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
+      if (existingImage) {
+        const imageSize = existingImage.size;
+        console.log("---------");
+        console.log(imageSize);
+        console.log(userId);
+        const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -140,24 +139,52 @@ app.post('/api/deleteImage', async (req, res) => {
           },
         });
 
-        const bandwidthUpdated = await updateBandwidthUsage.json();
+        const innerApiData = await innerApiResponse.json();
+        
+        const maxBandwidth = innerApiData.maxBandwidth;
+        console.log(innerApiData.bandwidthAvailable);
 
-        console.log(bandwidthUpdated.db_status);
+        if (innerApiData && innerApiData.bandwidthAvailable === true) {
+          await existingImage.deleteOne();
 
-        res.json({ message: 'Image deleted successfully!' });
+          const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
+            method: 'POST',
+            body: JSON.stringify({ userId: userId, imageSize: imageSize }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const bandwidthUpdated = await updateBandwidthUsage.json();
+
+          console.log(bandwidthUpdated.db_status);
+
+          res.json({ message: 'Image deleted successfully!' });
+        } else {
+          console.log("Not enough bandwidth");
+          const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Deletion not possible.';
+          const innerApiResponse = await fetch('http://localhost:3400/frontend/api/displayBandwidthAlert', {
+          method: 'POST',
+          body: JSON.stringify({ alertMessage: message }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          });
+
+          const innerApiData = await innerApiResponse.json();
+
+          console.log(innerApiData.alertDisplayStatus);
+          res.json({ message: 'Image not deleted due to inner API response.' });
+        }
       } else {
-        console.log("Not enough bandwidth");
-        res.json({ message: 'Image not deleted due to inner API response.' });
+        res.json({ message: 'Image not found.' });
       }
-    } else {
-      res.json({ message: 'Image not found.' });
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 app.get('/api/viewGallery/:userId', async (req, res) => {
   try {
