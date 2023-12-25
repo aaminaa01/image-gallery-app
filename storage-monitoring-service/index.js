@@ -54,6 +54,8 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       // Set the maximum allowed size (in bytes)
       const maxAllowedSize = 20971520; // 20MBs
 
+      const eightyPercentOfMaxAllowedSize = 0.8 * maxAllowedSize;
+
       // Check if adding the current image size exceeds the limit
       if (totalSizeOfExistingImages + imageSize <= maxAllowedSize) {
         // Create a new Image document with the uploaded image data, userId, and size
@@ -87,18 +89,21 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
         //   },
         // });
 
-
-        res.json({ message: 'Image uploaded successfully!' });
+        if (totalSizeOfExistingImages + imageSize >= eightyPercentOfMaxAllowedSize ){
+          res.json({ alertMessage:'You have used more than 80 percent of your storage limit!',message: 'Image uploaded successfully!' });
+        }else{
+          res.json({ alertMessage:'',message: 'Image uploaded successfully!' });
+        }
       } else {
         // The total size exceeds the limit, do not save the image
         console.log("Not enough storage");
-        res.json({ message: 'Image not saved. Storage limit exceeded.' });
+        res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
       }
     } else {
       // The boolean response is false, do not save the image
       console.log("Not enough bandwidth");
-      const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Deletion not possible.';
-      const innerApiResponse = await fetch('http://localhost:3400/frontend/api/displayBandwidthAlert', {
+      const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Upload not possible.';
+      const innerApiResponse = await fetch('http://localhost:3400/api/displayBandwidthAlert', {
       method: 'POST',
       body: JSON.stringify({ alertMessage: message }),
       headers: {
@@ -109,7 +114,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       const innerApiData = await innerApiResponse.json();
 
       console.log(innerApiData.alertDisplayStatus);
-      res.json({ message: 'Image not saved due to inner API response.' });
+      res.json({ message: 'Image not uploaded, bandwidth limit exceeded.' });
     }
   } catch (error) {
     console.error(error);
@@ -174,7 +179,7 @@ app.post('/api/deleteImage', async (req, res) => {
           const innerApiData = await innerApiResponse.json();
 
           console.log(innerApiData.alertDisplayStatus);
-          res.json({ message: 'Image not deleted due to inner API response.' });
+          res.json({ message: 'Image not deleted, bandwidth limit exceeded.' });
         }
       } else {
         res.json({ message: 'Image not found.' });
