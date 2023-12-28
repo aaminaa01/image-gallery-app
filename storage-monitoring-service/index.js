@@ -127,7 +127,7 @@ app.post('/api/deleteImage', async (req, res) => {
   try {
     const imageIds = req.body.imageIds;
     const userId = req.body.userId;
-
+    console.log(imageIds);
     for(const imageId of imageIds) {
       const existingImage = await Image.findById(imageId);
 
@@ -191,7 +191,7 @@ app.post('/api/deleteImage', async (req, res) => {
   }
 });
 
-app.post('/api/viewGallery/:userId', async (req, res) => {
+app.get('/api/viewGallery/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     console.log(userId);

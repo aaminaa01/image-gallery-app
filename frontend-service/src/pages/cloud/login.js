@@ -1,6 +1,6 @@
 import AuthContext from '@/contexts/AuthContext';
 import { Router, useRouter } from 'next/router';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -8,14 +8,16 @@ const Login = () => {
     const router = useRouter();
     const { user, loginUser } = useContext(AuthContext);
 
+    useEffect(() => {
+        if (user) {
+          router.push("/cloud");
+        }
+      }, [user, router]);
+
     const handleLogin = (e) => {
         console.log('BABABOI');
         loginUser(e);
     };
-
-    // if (user) {
-    //     router.push("/cloud");
-    // }
 
     return (
         <div>
