@@ -40,6 +40,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
 
     console.log(innerApiData.bandwidthAvailable);
     const maxBandwidth = innerApiData.maxBandwidth;
+    const currentBandwidthUsage =  innerApiData.currentBandwidthUsage;
 
     // Check if the boolean response from the inner API is true
     if (innerApiData && innerApiData.bandwidthAvailable === true) {
@@ -112,7 +113,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       console.log("Not enough bandwidth");
       const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Upload not possible.';
 
-      res.status(500).send({"error": 'Image not uploaded. Bandwidth limit exceeded.'});
+      res.status(500).send({"error": 'Image not uploaded. Request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
 
       const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
@@ -151,7 +152,7 @@ app.post('/api/deleteImage', async (req, res) => {
         });
 
         const innerApiData = await innerApiResponse.json();
-        
+        const currentBandwidthUsage =  innerApiData.currentBandwidthUsage;
         const maxBandwidth = innerApiData.maxBandwidth;
         console.log(innerApiData.bandwidthAvailable);
 
@@ -191,7 +192,7 @@ app.post('/api/deleteImage', async (req, res) => {
           },
         });
 
-          res.json({ message: 'Image not deleted, bandwidth limit exceeded.' });
+          res.json({ message: 'Image not deleted, request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
         }
       } else {
         res.json({ message: 'Image not found.' });
