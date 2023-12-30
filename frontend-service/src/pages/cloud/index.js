@@ -227,6 +227,7 @@ const index = () => {
         />
       )}
 
+
       {selectedImage && (
         <EnlargedImageView image={userImages.find(img => img._id === selectedImage)} onClose={() => setSelectedImage(null)} />
       )}

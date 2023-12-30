@@ -9,7 +9,7 @@ export default function Navbar() {
   const { user, logoutUser } = useContext(AuthContext);
 
   return (
-    <div className={styles.navbar}>
+    <nav className={styles.navbar}>
       <div className={styles.logo}>
         <Link href="/cloud">
           <h1>Google Drive Lite</h1>
@@ -35,6 +35,6 @@ export default function Navbar() {
           </Link>
         )}
       </div>
-    </div>
+    </nav>
   );
 }
