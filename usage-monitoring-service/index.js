@@ -47,10 +47,10 @@ app.post('/api/getBandwidthUsed', async (req, res) => {
     console.log("test");
     if ((currentBandwidthUsage + requestSize) > maxBandwidth) {
       console.log('not available');
-      res.json({ maxBandwidth: maxBandwidth, bandwidthAvailable: false });
+      res.json({ currentBandwidthUsage: currentBandwidthUsage, maxBandwidth: maxBandwidth, bandwidthAvailable: false });
     } else {
       console.log('available');
-      res.json({ maxBandwidth: maxBandwidth, bandwidthAvailable: true });
+      res.json({ currentBandwidthUsage: currentBandwidthUsage, maxBandwidth: maxBandwidth, bandwidthAvailable: true });
     }
   } catch (error) {
     console.error(error);
