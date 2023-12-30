@@ -97,7 +97,8 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       } else {
         // The total size exceeds the limit, do not save the image
         console.log("Not enough storage");
-        res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
+        res.status(500).send({"error": 'Image not uploaded. Storage limit exceeded.'});
+        // res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
         const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(),size:`${imageSize}`, service: 'not stored', message: `New Image for USER ID: ${userId} not saved due to lack of storage` }),
@@ -110,18 +111,8 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       // The boolean response is false, do not save the image
       console.log("Not enough bandwidth");
       const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Upload not possible.';
-      const innerApiResponse = await fetch('http://localhost:3400/api/displayBandwidthAlert', {
-      method: 'POST',
-      body: JSON.stringify({ alertMessage: message }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      });
 
-      const innerApiData = await innerApiResponse.json();
-
-      console.log(innerApiData.alertDisplayStatus);
-      res.json({ message: 'Image not uploaded, bandwidth limit exceeded.' });
+      res.status(500).send({"error": 'Image not uploaded. Bandwidth limit exceeded.'});
 
       const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
@@ -190,19 +181,8 @@ app.post('/api/deleteImage', async (req, res) => {
           res.json({ message: 'Image deleted successfully!' });
         } else {
           console.log("Not enough bandwidth");
-          const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Deletion not possible.';
-          const innerApiResponse = await fetch('http://localhost:3400/frontend/api/displayBandwidthAlert', {
-          method: 'POST',
-          body: JSON.stringify({ alertMessage: message }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          });
-
-          const innerApiData = await innerApiResponse.json();
-
-          console.log(innerApiData.alertDisplayStatus);
-
+          res.status(500).send({"error": 'Image not deleted. Bandwidth limit exceeded.'});
+          
           const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(), size: `${imageSize}`, service: 'not deleted', message: `Image with ID: ${imageId} for USER ID: ${userId} not deleted due to bandwidth shortage.` }),
