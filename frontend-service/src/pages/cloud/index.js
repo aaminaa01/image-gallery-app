@@ -15,6 +15,8 @@ const index = () => {
   const [showModal, setShowModal] = useState(false);
   const [checkedImages, setCheckedImages] = useState([]);
   const [hasCheckedImages, setHasCheckedImages] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
 
   useEffect(() => {
     if (!user) {
@@ -52,7 +54,7 @@ const index = () => {
 
   const handleDelete = (imageIds) => {
     // if (window.confirm("Are you sure you want to delete the selected images?")) {
-      deleteImages(imageIds);
+    deleteImages(imageIds);
     // }
   };
 
@@ -66,22 +68,23 @@ const index = () => {
           },
           body: JSON.stringify({ userId: userId, imageIds: [imageId] }), // Wrap each image ID in an array
         });
-  
+
         if (response.ok) {
           console.log(`Image ${imageId} deleted successfully.....`);
         } else {
           console.error(`Failed to delete image ${imageId}.`);
         }
       }
-  
+
       // After deleting all images, update state and fetch user images
       setCheckedImages([]);
+      setHasCheckedImages(false);
       fetchUserImages();
     } catch (error) {
       console.error('Error deleting image:', error);
     }
   };
-  
+
 
   const fetchUserImages = async () => {
     try {
@@ -107,11 +110,19 @@ const index = () => {
       const newCheckedImages = prevCheckedImages.includes(imageId)
         ? prevCheckedImages.filter((id) => id !== imageId)
         : [...prevCheckedImages, imageId];
-  
+
       setHasCheckedImages(newCheckedImages.length > 0);
-  
+
       return newCheckedImages;
     });
+  };
+
+  const handleImageClick = (imageId, event) => {
+    // Check if the click target is not the checkbox
+    if (!event.target.classList.contains(styles.checkButton)) {
+      setSelectedImage(imageId);
+    }
+
   };
 
   // Fetch user images when the component mounts
@@ -154,6 +165,17 @@ const index = () => {
     }
   };
 
+  const EnlargedImageView = ({ image, onClose }) => {
+    return (
+      <div className={styles.enlargedImageView}>
+        <div className={styles.closeButton} onClick={onClose}>
+          &#10006; {/* This is the '×' character for the cross */}
+        </div>
+        <img src={`data:image/jpeg;base64,${image.data}`} alt={`Enlarged Image`} />
+      </div>
+    );
+  };
+
   useEffect(() => {
     var box = document.getElementById("box");
     var file = document.getElementById("file");
@@ -170,16 +192,16 @@ const index = () => {
   return (
     <div className={styles.background}>
       <div className={styles.container}>
-      <button onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete Selected</button>
+        <button onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete Selected</button>
         <div>
           <form className={styles.gallery} onSubmit={handleSubmit}>
             {userImages.map((image) => (
-              <div key={image._id} className={styles.card}>
+              <div key={image._id} className={styles.card} onClick={(event) => handleImageClick(image._id, event)}>
                 <img src={`data:image/jpeg;base64,${image.data}`} alt={`User Image ${image._id}`} />
                 <input
                   type="checkbox"
                   className={styles.checkButton}
-                  onChange={() => handleCheck(image._id)}
+                  onChange={(event) => handleCheck(image._id)}
                 />
               </div>
             ))}
@@ -204,6 +226,11 @@ const index = () => {
           closeModal={closeModal}
         />
       )}
+
+      {selectedImage && (
+        <EnlargedImageView image={userImages.find(img => img._id === selectedImage)} onClose={() => setSelectedImage(null)} />
+      )}
+
     </div>
   );
 };
