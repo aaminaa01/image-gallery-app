@@ -27,6 +27,7 @@
 
 .card {
   position: relative;
+  cursor: pointer;
   width: 200px;
   height: 300px;
   margin: 20px;

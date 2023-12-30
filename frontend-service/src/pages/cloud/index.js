@@ -44,7 +44,8 @@ const index = () => {
         fetchUserImages();
         setImage(null);
       } else {
-        console.error('Failed to upload image.');
+        const data = await response.json;
+        console.error(data);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
