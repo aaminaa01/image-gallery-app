@@ -85,13 +85,6 @@ app.post('/api/updateBandwidthUsed', async (req, res) => {
   }
 });
 
-// Route to handle requests to the root URL
-// app.post('/', (req, res) => {
-//   const id = req.body.userId;
-//   console.log(id);
-//   res.status(200).json({id: id});
-// });
-
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
