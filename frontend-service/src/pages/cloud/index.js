@@ -58,25 +58,30 @@ const index = () => {
 
   const deleteImages = async (imageIdArr) => {
     try {
-      const response = await fetch('http://localhost:5000/api/deleteImage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: userId, imageIds: imageIdArr}),
-      });
-
-      if (response.ok) {
-        console.log('Image deleted successfully.....');
-        setCheckedImages([]);
-        fetchUserImages();
-      } else {
-        console.error('Failed to delete image.');
+      for (const imageId of imageIdArr) {
+        const response = await fetch('http://localhost:5000/api/deleteImage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: userId, imageIds: [imageId] }), // Wrap each image ID in an array
+        });
+  
+        if (response.ok) {
+          console.log(`Image ${imageId} deleted successfully.....`);
+        } else {
+          console.error(`Failed to delete image ${imageId}.`);
+        }
       }
+  
+      // After deleting all images, update state and fetch user images
+      setCheckedImages([]);
+      fetchUserImages();
     } catch (error) {
       console.error('Error deleting image:', error);
     }
   };
+  
 
   const fetchUserImages = async () => {
     try {
