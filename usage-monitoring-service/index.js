@@ -85,6 +85,30 @@ app.post('/api/updateBandwidthUsed', async (req, res) => {
   }
 });
 
+app.get('/api/consumedBandwidth/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Get the current date
+    const currentDate = new Date();
+    const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+    // Find documents matching the criteria
+    const documents = await BandwidthUsage.find({
+      userId: userId,
+      date: { $gte: startOfDay }
+    });
+
+    // Calculate total consumed bandwidth in megabytes
+    const totalConsumedBandwidthMB = documents.reduce((total, doc) => total + doc.requestSize, 0) / (1024 * 1024); // Convert bytes to megabytes
+
+    res.json({ userId: userId, consumedBandwidthMB: totalConsumedBandwidthMB.toFixed(2) }); // Send the result with two decimal places
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
