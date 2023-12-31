@@ -4,7 +4,7 @@
   --logo-color: #000; /* Black color for the logo text */
   --link-hover-background: #2980b9; /* Darker blue color on link hover */
   --action-hover-background: #e74c3c; /* Crimson color on action hover */
-  --red-color: #e74c3c; /* Crimson color */
+  --red-color: #f8a69d; /* Crimson color */
 
   background-color: var(--background);
   color: var(--text-color);
@@ -38,7 +38,7 @@
 }
 
 .action {
-  cursor: pointer;
+  
   font-weight: 900;
   font-size: large;
   padding: 10px;
@@ -46,12 +46,15 @@
   transition: background-color 0.3s ease;
 }
 
-.action:hover {
+.red {
+  cursor: pointer;
   background-color: var(--action-hover-background);
+  color: var(--red-color);
 }
 
-.red {
-  color: var(--red-color);
+.red:hover {
+  transition: color 0.3s ease;
+  color: black;
 }
 
 .userActions {
