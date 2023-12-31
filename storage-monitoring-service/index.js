@@ -224,6 +224,23 @@ app.get('/api/viewGallery/:userId', async (req, res) => {
   }
 });
 
+app.get('/api/consumedSpace/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch all images associated with the user
+    const userImages = await Image.find({ userId: userId });
+
+    // Calculate total consumed space in megabytes
+    const totalConsumedSpaceMB = userImages.reduce((totalSize, image) => totalSize + image.size, 0) / (1024 * 1024); // Convert bytes to megabytes
+
+    res.json({ userId: userId, consumedSpaceMB: totalConsumedSpaceMB.toFixed(2) }); // Send the result with two decimal places
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 // Start the server
