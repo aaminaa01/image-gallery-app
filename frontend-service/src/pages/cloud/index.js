@@ -19,6 +19,17 @@ const index = () => {
   const [usage, setUsage] = useState(null);
   const [space, setSpace] = useState(null);
 
+  useEffect(() => {
+    if (!user) {
+      router.push("/cloud/login");
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (user) setUserId(user.username);
+  }, [user])
+
+
   const fetchData = async () => {
     try {
       // Fetch bandwidth data
@@ -60,17 +71,6 @@ const index = () => {
     // Run the fetchData function on every render
     fetchData();
   }, [userId]);
-
-
-  useEffect(() => {
-    if (!user) {
-      router.push("/cloud/login");
-    }
-  }, [user, router]);
-
-  useEffect(() => {
-    if (user) setUserId(user.username);
-  }, [user])
 
   const uploadImage = async (formData) => {
     try {
