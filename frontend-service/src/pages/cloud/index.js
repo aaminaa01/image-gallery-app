@@ -43,6 +43,15 @@ const index = () => {
         // After uploading, fetch the updated list of images
         fetchUserImages();
         setImage(null);
+
+        //get the alert message
+        const responseObject = await response.json();
+        console.log(responseObject);
+        const alertMessage = responseObject.alertMessage;
+        const message = responseObject.message;
+        console.log("Alert Message:", alertMessage);
+        console.log("Message:", message);
+        
       } else {
         const data = await response.json;
         console.error(data);
@@ -81,6 +90,7 @@ const index = () => {
       setCheckedImages([]);
       setHasCheckedImages(false);
       fetchUserImages();
+      console.log(response);
     } catch (error) {
       console.error('Error deleting image:', error);
     }

@@ -8,7 +8,7 @@ const port = 3400;
 
 app.use(cors());
 
-const maxBandwidth = 20971520; // 20MBs
+const maxBandwidth = 26214400; //25MBs
 
 // Set up multer for handling file uploads
 const storage = multer.memoryStorage();

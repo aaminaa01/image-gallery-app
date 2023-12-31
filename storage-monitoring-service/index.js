@@ -53,7 +53,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       const totalSizeOfExistingImages = existingImages.reduce((totalSize, image) => totalSize + image.size, 0);
 
       // Set the maximum allowed size (in bytes)
-      const maxAllowedSize = 20971520; // 20MBs
+      const maxAllowedSize = 10485760; // 10MBs
 
       const eightyPercentOfMaxAllowedSize = 0.8 * maxAllowedSize;
 
@@ -98,7 +98,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       } else {
         // The total size exceeds the limit, do not save the image
         console.log("Not enough storage");
-        res.status(500).send({"error": 'Image not uploaded. Storage limit exceeded.'});
+        res.status(413).send({"error": 'Image not uploaded. Storage limit exceeded.'});
         // res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
         const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
@@ -113,8 +113,8 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       console.log("Not enough bandwidth");
       const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Upload not possible.';
 
-      res.status(500).send({"error": 'Image not uploaded. Request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
-
+      res.status(429).send({"error": 'Image not uploaded. Request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
+      console.log(res);
       const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(),size:`${imageSize}`, service: 'not stored', message: `New Image for USER ID: ${userId} not saved due to bandwidth shortage.` }),
@@ -182,7 +182,7 @@ app.post('/api/deleteImage', async (req, res) => {
           res.json({ message: 'Image deleted successfully!' });
         } else {
           console.log("Not enough bandwidth");
-          res.status(500).send({"error": 'Image not deleted. Bandwidth limit exceeded.'});
+          res.status(429).send({"error": 'Image not deleted. Bandwidth limit exceeded.'});
           
           const log = await fetch('http://localhost:3004/logs/', {
           method: 'POST',
@@ -191,8 +191,6 @@ app.post('/api/deleteImage', async (req, res) => {
             'Content-Type': 'application/json',
           },
         });
-
-          res.json({ message: 'Image not deleted, request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
         }
       } else {
         res.json({ message: 'Image not found.' });
