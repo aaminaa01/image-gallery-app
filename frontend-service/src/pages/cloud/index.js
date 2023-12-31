@@ -22,7 +22,7 @@ const index = () => {
   const fetchData = async () => {
     try {
       // Fetch bandwidth data
-      const bandwidthResponse = await fetch(`http://localhost:3400/api/consumedBandwidth/${userId}`, {
+      const bandwidthResponse = await fetch(` https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/consumedBandwidth/${userId}`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -36,7 +36,7 @@ const index = () => {
       }
 
       // Fetch space data
-      const spaceResponse = await fetch(`http://localhost:5000/api/consumedSpace/${userId}`, {
+      const spaceResponse = await fetch(`https://storage-monitoring-service-au42szmu7a-uc.a.run.app/api/consumedSpace/${userId}`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -77,7 +77,7 @@ const index = () => {
       // Append userId to formData
       formData.append('userId', userId);
 
-      const response = await fetch('http://localhost:5000/api/uploadImage', {
+      const response = await fetch('https://storage-monitoring-service-au42szmu7a-uc.a.run.app/api/uploadImage', {
         method: 'POST',
         body: formData,
       });
@@ -124,7 +124,7 @@ const index = () => {
   const deleteImages = async (imageIdArr) => {
     try {
       for (const imageId of imageIdArr) {
-        const response = await fetch('http://localhost:5000/api/deleteImage', {
+        const response = await fetch('https://storage-monitoring-service-au42szmu7a-uc.a.run.app/api/deleteImage', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ const index = () => {
 
   const fetchUserImages = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/viewGallery/${userId}`, {
+      const response = await fetch(`https://storage-monitoring-service-au42szmu7a-uc.a.run.app/api/viewGallery/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
