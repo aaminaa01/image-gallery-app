@@ -25,11 +25,11 @@ const Login = () => {
           <h1 className={styles.heading}>Login</h1>
           <form onSubmit={handleLogin} className={styles.form}>
             <label className={styles.label}>
-              Username:
+              Username: 
               <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} name="username" required/>
             </label>
             <label className={styles.label}>
-              Password:
+              Password: 
               <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} name="password" required/>
 
             </label>

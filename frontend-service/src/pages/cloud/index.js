@@ -29,7 +29,6 @@ const index = () => {
       });
 
       if (bandwidthResponse.ok) {
-        console.log("B OK");
         const bandwidthData = await bandwidthResponse.json();
         setUsage(bandwidthData);
       } else {
@@ -44,7 +43,6 @@ const index = () => {
       });
 
       if (spaceResponse.ok) {
-        console.log("S OK");
         const spaceData = await spaceResponse.json();
         setSpace(spaceData);
       } else {
@@ -96,10 +94,18 @@ const index = () => {
         console.log(responseObject);
         const alertMessage = responseObject.alertMessage;
         const message = responseObject.message;
-        console.log("Alert Message:", alertMessage);
+        if (alertMessage) {
+          alert(alertMessage);
+        }
         console.log("Message:", message);
-        
+
       } else {
+        if (response.status === 413) {
+          alert("Image Not Uploaded! Not Enough Space!");
+        }
+        else if (response.status === 429) {
+          alert("Image Not Uploaded! You do not have enough bandwidth for today!");
+        }
         const data = await response.json;
         console.error(data);
       }
@@ -130,6 +136,9 @@ const index = () => {
           console.log(`Image ${imageId} deleted successfully.....`);
           fetchData();
         } else {
+          if (response.status === 429) {
+            alert("Image Not Deleted! You do not have enough bandwidth for today!");
+          }
           console.error(`Failed to delete image ${imageId}.`);
         }
       }
@@ -138,7 +147,6 @@ const index = () => {
       setCheckedImages([]);
       setHasCheckedImages(false);
       await fetchUserImages();
-      console.log(response);
     } catch (error) {
       console.error('Error deleting image:', error);
     }
@@ -245,15 +253,15 @@ const index = () => {
     return () => {
       box.removeEventListener('click', handleClick);
     };
-  }, []);            
+  }, []);
 
   return (
     <div className={styles.background}>
       <div className={styles.container}>
         <div className={styles.storageInfo}>
-          <p>Current Storage: {space ? space.consumedSpaceMB : 'Loading...'}/10 MB</p>
+          <p>Current Storage: {space ? space.consumedSpaceMB : '...'}/10 MB</p>
           <button onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete Selected</button>
-          <p>Today's Usage: {usage ? usage.consumedBandwidthMB : 'Loading...'}/25 MB</p>
+          <p>Today's Usage: {usage ? usage.consumedBandwidthMB : '...'}/25 MB</p>
         </div>
         <div>
           <form className={styles.gallery} onSubmit={handleSubmit}>
