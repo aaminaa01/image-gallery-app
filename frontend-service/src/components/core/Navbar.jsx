@@ -5,30 +5,6 @@ import styles from "@/styles/NavbarStyles.module.css";
 
 export default function Navbar() {
   const { user, logoutUser } = useContext(AuthContext);
-  const [usage, setUsage] = useState(null);
-  useEffect(() => {
-    // Fetch data from the API
-    const fetchData = async () => {
-      try {
-        const response = await fetch(" http://localhost:3400/api/getBandwidthUsed", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUsage(data);
-        } else {
-          console.error("Failed to fetch data from API");
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   return (
     <nav className={styles.navbar}>
@@ -45,7 +21,6 @@ export default function Navbar() {
       <div className={styles.actions}>
         {user ? (
           <div className={styles.userActions}>
-            <div className={styles.action}>{usage.currentBandwidthUsage/(1024*1024)}/{usage.maxBandwidth/(1024*1024)} MBs</div>
             <div className={styles.action}>{user.username}</div>
             <div className={`${styles.action} ${styles.red}`} onClick={logoutUser}>
               Logout

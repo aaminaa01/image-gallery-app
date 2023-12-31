@@ -26,7 +26,7 @@ const Signup = () => {
     };
 
     const handleSignup = (e) => {
-        // registerUser(e);
+        registerUser(e);
     };
 
     return (

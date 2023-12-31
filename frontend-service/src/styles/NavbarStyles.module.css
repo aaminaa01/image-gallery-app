@@ -1,12 +1,10 @@
-/* NavbarStyles.module.css */
-
 .navbar {
-  --background: #2c3e50;
-  --text-color: #ecf0f1;
-  --logo-color: #3498db;
-  --link-hover-background: #34495e;
-  --action-hover-background: #e74c3c;
-  --red-color: #e74c3c;
+  --background: #3498db; /* Blue color for the navbar background */
+  --text-color: #fff; /* White text color */
+  --logo-color: #000; /* Black color for the logo text */
+  --link-hover-background: #2980b9; /* Darker blue color on link hover */
+  --action-hover-background: #e74c3c; /* Crimson color on action hover */
+  --red-color: #e74c3c; /* Crimson color */
 
   background-color: var(--background);
   color: var(--text-color);

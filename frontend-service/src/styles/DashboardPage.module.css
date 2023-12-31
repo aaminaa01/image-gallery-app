@@ -1,5 +1,4 @@
 .background {
-  background: linear-gradient(to right, #3498db, #8e44ad);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -11,11 +10,20 @@
   max-width: 1200px;
   width: 100%;
   padding: 20px;
-  color: #fff;
+  color: #000; /* Black text */
 }
 
-.container h1 {
+.storageInfo {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
   text-align: center;
+}
+
+.storageInfo p {
+  font-size: large;
+  font-weight: 800;
+  margin: 0; /* Remove default margin */
 }
 
 .gallery {
@@ -51,7 +59,7 @@
   border: none;
   cursor: pointer;
   font-size: 20px;
-  color: #fff;
+  color: #fff; /* White color for the button */
 }
 
 .card img {
@@ -76,12 +84,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align : center;
+  text-align: center;
   width: 200px;
   height: 300px;
   margin: 20px;
-  background-color: #3498db;
-  color: #fff;
+  background-color: #3498db; /* Blue color */
+  color: #fff; /* White text */
   font-size: 36px;
   border: 2px dashed #fff;
   border-radius: 8px;
@@ -91,7 +99,7 @@
 }
 
 .addCard:hover {
-  background-color: #2980b9;
+  background-color: #2980b9; /* Darker blue color on hover */
 }
 
 .file {
@@ -102,7 +110,7 @@
 }
 
 .icon {
-  position : absolute;
+  position: absolute;
 }
 
 .enlargedImageView {
@@ -131,7 +139,7 @@
   right: 10px;
   font-size: 24px;
   cursor: pointer;
-  color: white;
+  color: #fff; /* White color */
   background: none;
   border: none;
   padding: 0;
@@ -142,7 +150,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #cebbbb;
+  background-color: #fff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -171,8 +179,8 @@
 }
 
 .modal button {
-  background-color: #4caf50;
-  color: white;
+  background-color: #3498db; /* Blue color for buttons */
+  color: #fff; /* White text */
   padding: 10px 15px;
   border: none;
   border-radius: 4px;
@@ -181,5 +189,5 @@
 }
 
 .modal button:last-child {
-  background-color: #f44336;
+  background-color: crimson; /* Crimson color for the Cancel button */
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import AuthContext from '@/contexts/AuthContext';
-import { Router, useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import styles from '@/styles/DashboardPage.module.css';
 import UploadModal from '@/components/UploadModal';
 import { FaCamera } from 'react-icons/fa';
@@ -16,6 +16,52 @@ const index = () => {
   const [checkedImages, setCheckedImages] = useState([]);
   const [hasCheckedImages, setHasCheckedImages] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [usage, setUsage] = useState(null);
+  const [space, setSpace] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      // Fetch bandwidth data
+      const bandwidthResponse = await fetch(`http://localhost:3400/api/consumedBandwidth/${userId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (bandwidthResponse.ok) {
+        console.log("B OK");
+        const bandwidthData = await bandwidthResponse.json();
+        setUsage(bandwidthData);
+      } else {
+        console.error("Failed to fetch bandwidth data from API");
+      }
+
+      // Fetch space data
+      const spaceResponse = await fetch(`http://localhost:5000/api/consumedSpace/${userId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (spaceResponse.ok) {
+        console.log("S OK");
+        const spaceData = await spaceResponse.json();
+        setSpace(spaceData);
+      } else {
+        console.error("Failed to fetch space data from API");
+      }
+
+      // Fetch user images
+      await fetchUserImages();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Run the fetchData function on every render
+    fetchData();
+  }, [userId]);
 
 
   useEffect(() => {
@@ -41,7 +87,8 @@ const index = () => {
       if (response.ok) {
         console.log('Image uploaded successfully.....');
         // After uploading, fetch the updated list of images
-        fetchUserImages();
+        await fetchUserImages();
+        fetchData();
         setImage(null);
 
         //get the alert message
@@ -81,6 +128,7 @@ const index = () => {
 
         if (response.ok) {
           console.log(`Image ${imageId} deleted successfully.....`);
+          fetchData();
         } else {
           console.error(`Failed to delete image ${imageId}.`);
         }
@@ -89,13 +137,12 @@ const index = () => {
       // After deleting all images, update state and fetch user images
       setCheckedImages([]);
       setHasCheckedImages(false);
-      fetchUserImages();
+      await fetchUserImages();
       console.log(response);
     } catch (error) {
       console.error('Error deleting image:', error);
     }
   };
-
 
   const fetchUserImages = async () => {
     try {
@@ -103,7 +150,7 @@ const index = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
       if (response.ok) {
         const data = await response.json();
@@ -198,12 +245,16 @@ const index = () => {
     return () => {
       box.removeEventListener('click', handleClick);
     };
-  }, []);
+  }, []);            
 
   return (
     <div className={styles.background}>
       <div className={styles.container}>
-        <button onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete Selected</button>
+        <div className={styles.storageInfo}>
+          <p>Current Storage: {space ? space.consumedSpaceMB : 'Loading...'}/10 MB</p>
+          <button onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete Selected</button>
+          <p>Today's Usage: {usage ? usage.consumedBandwidthMB : 'Loading...'}/25 MB</p>
+        </div>
         <div>
           <form className={styles.gallery} onSubmit={handleSubmit}>
             {userImages.map((image) => (

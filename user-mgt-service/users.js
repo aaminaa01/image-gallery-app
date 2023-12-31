@@ -20,12 +20,25 @@ function ensureSameUserInBody(req, res, next) {
   else res.status(401).json({"error": "You cannot access another user's data."}); 
 }
 
+user_router.use(express.json());
+
+user_router.route('/')
+.post(async (req, res) => {
+  let user = req.body;
+  if ((await User.find({ username: user.username })).length !== 0) {
+    res.status(200).json({ "error": "Username already exists." });
+  } else {
+    await User.create(user);
+    res.status(200).json({ "success": "Added user successfully." });
+  }
+});
+
 user_router.use((req, res, next) => {
   console.log(new Date() + " " + req.path);
   next();
 })
 
-user_router.use(express.json());
+
 
 /**
  * endpoint for the front end to login the user with
@@ -67,20 +80,12 @@ user_router.use(async (req, res, next) => {
  * @param username the username of the user to modify
  * @param to_update a json key that contains the json of the modified values
  */
+
 user_router.route('/')
   .get(checkAdmin, async (req, res) => {
     let users = await User.find({});
     res.status(200).json(users);
   })
-  .post(checkAdmin, async (req, res) => {
-    let user = req.body;
-    if ((await User.find({ username: user.username })).length !== 0) {
-      res.status(200).json({ "error": "Username already exists." });
-    } else {
-      await User.create(user);
-      res.status(200).json({ "success": "Added user successfully." });
-    }
-  });
 
 /**
  * endpoint to perform view, update and delete operations on a user

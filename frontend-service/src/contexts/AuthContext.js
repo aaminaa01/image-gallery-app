@@ -94,8 +94,7 @@ export function AuthProvider({ children }) {
     let response = await fetch(`${BACKEND_URL}:3001/users/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        'user': user.username
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         username: e.target.username.value,
@@ -105,7 +104,7 @@ export function AuthProvider({ children }) {
       }),
     });
 
-    console.log(response.body);
+    console.log(response.status);
 
     if (response.status === 200) {
       loginUser(e);
