@@ -28,7 +28,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
     const imageSize = Buffer.byteLength(req.file.buffer); // size in bytes
 
     // Make the inner API request to check if bandwidth is available
-    const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
+    const innerApiResponse = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/getBandwidthUsed', {
       method: 'POST',
       body: JSON.stringify({ userId: userId, imageSize: imageSize }),
       headers: {
@@ -70,7 +70,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
         await newImage.save();
 
         //send usage monitoring a request to update the used bandwidth
-        const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
+        const updateBandwidthUsage = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/updateBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -82,7 +82,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
 
         console.log(bandwidthUpdated.db_status);
 
-        const log = await fetch('http://localhost:3004/logs/', {
+        const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(),size: `${imageSize}`, service: 'stored', message: `New Image for USER ID: ${userId} saved.` }),
           headers: {
@@ -100,7 +100,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
         console.log("Not enough storage");
         res.status(413).send({"error": 'Image not uploaded. Storage limit exceeded.'});
         // res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
-        const log = await fetch('http://localhost:3004/logs/', {
+        const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(),size:`${imageSize}`, service: 'not stored', message: `New Image for USER ID: ${userId} not saved due to lack of storage` }),
           headers: {
@@ -115,7 +115,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
 
       res.status(429).send({"error": 'Image not uploaded. Request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
       console.log(res);
-      const log = await fetch('http://localhost:3004/logs/', {
+      const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(),size:`${imageSize}`, service: 'not stored', message: `New Image for USER ID: ${userId} not saved due to bandwidth shortage.` }),
           headers: {
@@ -143,7 +143,7 @@ app.post('/api/deleteImage', async (req, res) => {
         console.log("---------");
         console.log(imageSize);
         console.log(userId);
-        const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
+        const innerApiResponse = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/getBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -159,7 +159,7 @@ app.post('/api/deleteImage', async (req, res) => {
         if (innerApiData && innerApiData.bandwidthAvailable === true) {
           await existingImage.deleteOne();
 
-          const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
+          const updateBandwidthUsage = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/updateBandwidthUsed', {
             method: 'POST',
             body: JSON.stringify({ userId: userId, imageSize: imageSize }),
             headers: {
@@ -171,7 +171,7 @@ app.post('/api/deleteImage', async (req, res) => {
 
           console.log(bandwidthUpdated.db_status);
 
-          const log = await fetch('http://localhost:3004/logs/', {
+          const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(),size:`${imageSize}`,  service: 'deleted', message: `Image with ID: ${imageId} for USER ID: ${userId} deleted.` }),
           headers: {
@@ -184,7 +184,7 @@ app.post('/api/deleteImage', async (req, res) => {
           console.log("Not enough bandwidth");
           res.status(429).send({"error": 'Image not deleted. Bandwidth limit exceeded.'});
           
-          const log = await fetch('http://localhost:3004/logs/', {
+          const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
           method: 'POST',
           body: JSON.stringify({ time: new Date(), size: `${imageSize}`, service: 'not deleted', message: `Image with ID: ${imageId} for USER ID: ${userId} not deleted due to bandwidth shortage.` }),
           headers: {
