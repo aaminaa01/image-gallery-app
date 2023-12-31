@@ -1,6 +1,6 @@
 import AuthContext from "@/contexts/AuthContext";
 import Link from "next/link";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import styles from "@/styles/NavbarStyles.module.css";
 
 export default function Navbar() {
@@ -15,7 +15,7 @@ export default function Navbar() {
       </div>
       <div className={styles.links}>
         <Link href="/cloud">
-          <h1 className={styles.navLink}>Home</h1>
+          <h1 className={styles.navLink}>Dashboard</h1>
         </Link>
       </div>
       <div className={styles.actions}>

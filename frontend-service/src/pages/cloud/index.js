@@ -259,9 +259,9 @@ const index = () => {
     <div className={styles.background}>
       <div className={styles.container}>
         <div className={styles.storageInfo}>
-          <p>Current Storage: {space ? space.consumedSpaceMB : '...'}/10 MB</p>
-          <button onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete Selected</button>
-          <p>Today's Usage: {usage ? usage.consumedBandwidthMB : '...'}/25 MB</p>
+          <p className={styles.storageItem}>Current Storage: {space ? space.consumedSpaceMB : '...'}/10 MB</p>
+          <button className={styles.deleteButton} onClick={() => handleDelete(checkedImages)} disabled={!hasCheckedImages}>Delete</button>
+          <p className={styles.storageItem}>Today's Usage: {usage ? usage.consumedBandwidthMB : '...'}/25 MB</p>
         </div>
         <div>
           <form className={styles.gallery} onSubmit={handleSubmit}>
