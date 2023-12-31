@@ -1,6 +1,5 @@
 import { React, createContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { BACKEND_URL } from "@/secrets/urls";
 
 const AuthContext = createContext();
 export default AuthContext;
