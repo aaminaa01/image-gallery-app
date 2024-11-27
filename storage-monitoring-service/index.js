@@ -6,7 +6,7 @@ const { Image } = require('./db'); // Import the Image model from the db module
 
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 8080;
 
 app.use(cors());
 
@@ -28,7 +28,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
     const imageSize = Buffer.byteLength(req.file.buffer); // size in bytes
 
     // Make the inner API request to check if bandwidth is available
-    const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
+    const innerApiResponse = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/getBandwidthUsed', {
       method: 'POST',
       body: JSON.stringify({ userId: userId, imageSize: imageSize }),
       headers: {
@@ -40,6 +40,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
 
     console.log(innerApiData.bandwidthAvailable);
     const maxBandwidth = innerApiData.maxBandwidth;
+    const currentBandwidthUsage =  innerApiData.currentBandwidthUsage;
 
     // Check if the boolean response from the inner API is true
     if (innerApiData && innerApiData.bandwidthAvailable === true) {
@@ -52,7 +53,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       const totalSizeOfExistingImages = existingImages.reduce((totalSize, image) => totalSize + image.size, 0);
 
       // Set the maximum allowed size (in bytes)
-      const maxAllowedSize = 20971520; // 20MBs
+      const maxAllowedSize = 10485760; // 10MBs
 
       const eightyPercentOfMaxAllowedSize = 0.8 * maxAllowedSize;
 
@@ -69,7 +70,7 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
         await newImage.save();
 
         //send usage monitoring a request to update the used bandwidth
-        const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
+        const updateBandwidthUsage = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/updateBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -81,13 +82,13 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
 
         console.log(bandwidthUpdated.db_status);
 
-        // const log = await fetch('http://10.7.81.12:3000/logs/', {
-        //   method: 'POST',
-        //   body: JSON.stringify({ time: new Date(), service: 'stored', message: `${userId} saved.` }),
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        // });
+        const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
+          method: 'POST',
+          body: JSON.stringify({ time: new Date(),size: `${imageSize}`, service: 'stored', message: `New Image for USER ID: ${userId} saved.` }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
         if (totalSizeOfExistingImages + imageSize >= eightyPercentOfMaxAllowedSize ){
           res.json({ alertMessage:'You have used more than 80 percent of your storage limit!',message: 'Image uploaded successfully!' });
@@ -97,24 +98,30 @@ app.post('/api/uploadImage', upload.single('image'), async (req, res) => {
       } else {
         // The total size exceeds the limit, do not save the image
         console.log("Not enough storage");
-        res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
+        res.status(413).send({"error": 'Image not uploaded. Storage limit exceeded.'});
+        // res.json({ message: 'Image not uploaded. Storage limit exceeded.' });
+        const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
+          method: 'POST',
+          body: JSON.stringify({ time: new Date(),size:`${imageSize}`, service: 'not stored', message: `New Image for USER ID: ${userId} not saved due to lack of storage` }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
       }
     } else {
       // The boolean response is false, do not save the image
       console.log("Not enough bandwidth");
       const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Upload not possible.';
-      const innerApiResponse = await fetch('http://localhost:3400/api/displayBandwidthAlert', {
-      method: 'POST',
-      body: JSON.stringify({ alertMessage: message }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      });
 
-      const innerApiData = await innerApiResponse.json();
-
-      console.log(innerApiData.alertDisplayStatus);
-      res.json({ message: 'Image not uploaded, bandwidth limit exceeded.' });
+      res.status(429).send({"error": 'Image not uploaded. Request fulfillment will exceed bandwidth limit.', "currentBandwidthUsage": currentBandwidthUsage});
+      console.log(res);
+      const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
+          method: 'POST',
+          body: JSON.stringify({ time: new Date(),size:`${imageSize}`, service: 'not stored', message: `New Image for USER ID: ${userId} not saved due to bandwidth shortage.` }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
     }
   } catch (error) {
     console.error(error);
@@ -127,7 +134,7 @@ app.post('/api/deleteImage', async (req, res) => {
   try {
     const imageIds = req.body.imageIds;
     const userId = req.body.userId;
-
+    console.log(imageIds);
     for(const imageId of imageIds) {
       const existingImage = await Image.findById(imageId);
 
@@ -136,7 +143,7 @@ app.post('/api/deleteImage', async (req, res) => {
         console.log("---------");
         console.log(imageSize);
         console.log(userId);
-        const innerApiResponse = await fetch('http://localhost:3400/api/getBandwidthUsed', {
+        const innerApiResponse = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/getBandwidthUsed', {
           method: 'POST',
           body: JSON.stringify({ userId: userId, imageSize: imageSize }),
           headers: {
@@ -145,14 +152,14 @@ app.post('/api/deleteImage', async (req, res) => {
         });
 
         const innerApiData = await innerApiResponse.json();
-        
+        const currentBandwidthUsage =  innerApiData.currentBandwidthUsage;
         const maxBandwidth = innerApiData.maxBandwidth;
         console.log(innerApiData.bandwidthAvailable);
 
         if (innerApiData && innerApiData.bandwidthAvailable === true) {
           await existingImage.deleteOne();
 
-          const updateBandwidthUsage = await fetch('http://localhost:3400/api/updateBandwidthUsed', {
+          const updateBandwidthUsage = await fetch('https://usage-monitoring-service-au42szmu7a-uc.a.run.app/api/updateBandwidthUsed', {
             method: 'POST',
             body: JSON.stringify({ userId: userId, imageSize: imageSize }),
             headers: {
@@ -164,22 +171,26 @@ app.post('/api/deleteImage', async (req, res) => {
 
           console.log(bandwidthUpdated.db_status);
 
-          res.json({ message: 'Image deleted successfully!' });
-        } else {
-          console.log("Not enough bandwidth");
-          const message = 'Daily bandwidth limit of '+maxBandwidth+' bytes exceeded. Deletion not possible.';
-          const innerApiResponse = await fetch('http://localhost:3400/frontend/api/displayBandwidthAlert', {
+          const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
           method: 'POST',
-          body: JSON.stringify({ alertMessage: message }),
+          body: JSON.stringify({ time: new Date(),size:`${imageSize}`,  service: 'deleted', message: `Image with ID: ${imageId} for USER ID: ${userId} deleted.` }),
           headers: {
             'Content-Type': 'application/json',
           },
-          });
+        });
 
-          const innerApiData = await innerApiResponse.json();
-
-          console.log(innerApiData.alertDisplayStatus);
-          res.json({ message: 'Image not deleted, bandwidth limit exceeded.' });
+          res.json({ message: 'Image deleted successfully!' });
+        } else {
+          console.log("Not enough bandwidth");
+          res.status(429).send({"error": 'Image not deleted. Bandwidth limit exceeded.'});
+          
+          const log = await fetch('https://logging-service-au42szmu7a-uc.a.run.app/logs/', {
+          method: 'POST',
+          body: JSON.stringify({ time: new Date(), size: `${imageSize}`, service: 'not deleted', message: `Image with ID: ${imageId} for USER ID: ${userId} not deleted due to bandwidth shortage.` }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         }
       } else {
         res.json({ message: 'Image not found.' });
@@ -191,7 +202,7 @@ app.post('/api/deleteImage', async (req, res) => {
   }
 });
 
-app.post('/api/viewGallery/:userId', async (req, res) => {
+app.get('/api/viewGallery/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     console.log(userId);
@@ -207,6 +218,23 @@ app.post('/api/viewGallery/:userId', async (req, res) => {
     });
 
     res.json({ images: imagesWithBase64 });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/consumedSpace/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch all images associated with the user
+    const userImages = await Image.find({ userId: userId });
+
+    // Calculate total consumed space in megabytes
+    const totalConsumedSpaceMB = userImages.reduce((totalSize, image) => totalSize + image.size, 0) / (1024 * 1024); // Convert bytes to megabytes
+
+    res.json({ userId: userId, consumedSpaceMB: totalConsumedSpaceMB.toFixed(2) }); // Send the result with two decimal places
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });

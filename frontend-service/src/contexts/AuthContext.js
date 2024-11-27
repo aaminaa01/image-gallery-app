@@ -1,6 +1,5 @@
 import { React, createContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { BACKEND_URL } from "@/secrets/urls";
 
 const AuthContext = createContext();
 export default AuthContext;
@@ -28,7 +27,7 @@ export function AuthProvider({ children }) {
   const [loadingUser, setLoadingUser] = useState(null);
 
   let fetchUser = async () => {
-    let response = await fetch(`${BACKEND_URL}:3001/users/${initialToken}`, {
+    let response = await fetch(` https://user-mgt-service-au42szmu7a-uc.a.run.app/users/${initialToken}`, {
         headers: {
             'user': initialToken
         }
@@ -64,7 +63,7 @@ export function AuthProvider({ children }) {
 
   let loginUser = async (e) => {
     e.preventDefault();
-    let response = await fetch(`${BACKEND_URL}:3001/users/login`, {
+    let response = await fetch(` https://user-mgt-service-au42szmu7a-uc.a.run.app/users/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -91,11 +90,10 @@ export function AuthProvider({ children }) {
   let registerUser = async (e) => {
     e.preventDefault();
     let errormsg = "";
-    let response = await fetch(`${BACKEND_URL}:3001/users/`, {
+    let response = await fetch(` https://user-mgt-service-au42szmu7a-uc.a.run.app/users/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        'user': user.username
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         username: e.target.username.value,
@@ -105,7 +103,7 @@ export function AuthProvider({ children }) {
       }),
     });
 
-    console.log(response.body);
+    console.log(response.status);
 
     if (response.status === 200) {
       loginUser(e);

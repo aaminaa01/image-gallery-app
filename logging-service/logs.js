@@ -9,8 +9,9 @@ logs_router.route('/')
     let time = new Date(req.body.time);
     let service = req.body.service;
     let message = req.body.message;
+    let size = req.body.size;
 
-    await Logs.create({time: time, service: service, message: message});
+    await Logs.create({time: time,size:size, service: service, message: message});
     res.status(200).end();
  });
 

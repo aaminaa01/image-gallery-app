@@ -4,11 +4,11 @@ const cors = require('cors');
 const { BandwidthUsage } = require('./db'); // Import the BandwidthUsage model from the db module
 
 const app = express();
-const port = 3400;
+const port = process.env.PORT || 8080;
 
 app.use(cors());
 
-const maxBandwidth = 20971520; // 20MBs
+const maxBandwidth = 26214400; //25MBs
 
 // Set up multer for handling file uploads
 const storage = multer.memoryStorage();
@@ -47,10 +47,10 @@ app.post('/api/getBandwidthUsed', async (req, res) => {
     console.log("test");
     if ((currentBandwidthUsage + requestSize) > maxBandwidth) {
       console.log('not available');
-      res.json({ maxBandwidth: maxBandwidth, bandwidthAvailable: false });
+      res.json({ currentBandwidthUsage: currentBandwidthUsage, maxBandwidth: maxBandwidth, bandwidthAvailable: false });
     } else {
       console.log('available');
-      res.json({ maxBandwidth: maxBandwidth, bandwidthAvailable: true });
+      res.json({ currentBandwidthUsage: currentBandwidthUsage, maxBandwidth: maxBandwidth, bandwidthAvailable: true });
     }
   } catch (error) {
     console.error(error);
@@ -85,12 +85,29 @@ app.post('/api/updateBandwidthUsed', async (req, res) => {
   }
 });
 
-// Route to handle requests to the root URL
-// app.post('/', (req, res) => {
-//   const id = req.body.userId;
-//   console.log(id);
-//   res.status(200).json({id: id});
-// });
+app.get('/api/consumedBandwidth/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Get the current date
+    const currentDate = new Date();
+    const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+    // Find documents matching the criteria
+    const documents = await BandwidthUsage.find({
+      userId: userId,
+      date: { $gte: startOfDay }
+    });
+
+    // Calculate total consumed bandwidth in megabytes
+    const totalConsumedBandwidthMB = documents.reduce((total, doc) => total + doc.requestSize, 0) / (1024 * 1024); // Convert bytes to megabytes
+
+    res.json({ userId: userId, consumedBandwidthMB: totalConsumedBandwidthMB.toFixed(2) }); // Send the result with two decimal places
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Start the server
 app.listen(port, () => {

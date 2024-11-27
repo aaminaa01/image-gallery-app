@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://tammy:pass1234@cluster0.cd9uv7i.mongodb.net/gdrive_lite?retryWrites=true&w=majority', {
+mongoose.connect('mongodb://127.0.0.1:27017/gdrive_lite', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });

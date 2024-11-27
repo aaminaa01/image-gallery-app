@@ -1,0 +1,83 @@
+.navbar {
+  --background: #3498db; /* Blue color for the navbar background */
+  --text-color: #fff; /* White text color */
+  --logo-color: #000; /* Black color for the logo text */
+  --link-hover-background: #2980b9; /* Darker blue color on link hover */
+  --action-hover-background: #e74c3c; /* Crimson color on action hover */
+  --red-color: #f8a69d; /* Crimson color */
+
+  background-color: var(--background);
+  color: var(--text-color);
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo h1 {
+  margin: 0;
+  color: var(--logo-color);
+  cursor: pointer;
+}
+
+.links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-color);
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: var(--link-hover-background);
+}
+
+.action {
+  
+  font-weight: 900;
+  font-size: large;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.red {
+  cursor: pointer;
+  background-color: var(--action-hover-background);
+  color: var(--red-color);
+}
+
+.red:hover {
+  transition: color 0.3s ease;
+  color: black;
+}
+
+.userActions {
+  display: flex;
+  align-items: center;
+}
+
+.userActions .action {
+  margin-left: 10px; /* Add margin to create space between the two actions */
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .links {
+    margin-top: 10px;
+  }
+
+  .nav-link,
+  .action {
+    padding: 8px;
+  }
+}
